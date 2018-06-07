@@ -1,5 +1,8 @@
 import boto3
+import re
 import botocore
+import textract
+from collections import Counter
 
 #lorena-bucket
 def create_bucket(name):
@@ -23,4 +26,10 @@ def get_doc_bucket(name,filename,key):
 #upload_doc_bucket('lorena-bucket','doc.txt','doc1')
 #get_doc_bucket('lorena-bucket','doc1.txt','doc1')
 #get_doc_bucket('lorena-bucket','doc2.txt','Docs')
+def getMostRepeatedWordPdf():
+	file = open('doc.pdf','r')
+	words = [word for line in file for word in line.split()]
+	counts = Counter(words) 
+	key = next(iter(counts))
+
 
