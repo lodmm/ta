@@ -20,16 +20,15 @@ def delete_queue(name):
 	else:
 		print('It is not possible to delete the queue')		
 
-def put_message(urln, message, attributes,delay,did,gid):
+def put_message(urln, message, attributes):
 	sqs = boto3.client('sqs')
+	#Body -> key que va en el s3
+	#Attributes -> diccionario con clave otro diccionario con dos claves  datatype y
 	try:	
 		response = sqs.send_message(
 			QueueUrl = urln,
 			MessageBody = message,
-			DelaySeconds = delay,	
-			MessageAttributes = attributes,
-			MessageDuplicationId = did,
-			MessageGroupId = gid
+			MessageAttributes = attributes
 		)
 	except Exception as e:
 		print("It is not possible to put the message")
