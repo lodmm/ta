@@ -21,15 +21,13 @@ def get_doc_bucket(name,filename,key):
 		if e.response['Error']['Code'] == "404":
 			print("The object doesn't exist")
 
+def delete_bucket(name):
+	s3 = boto3.client('s3')
+  	s3.delete_bucket(Bucket=name)
 
-			
-#upload_doc_bucket('lorena-bucket','doc.txt','doc1')
-#get_doc_bucket('lorena-bucket','doc1.txt','doc1')
-#get_doc_bucket('lorena-bucket','doc2.txt','Docs')
-def getMostRepeatedWordPdf():
-	file = open('doc.pdf','r')
-	words = [word for line in file for word in line.split()]
-	counts = Counter(words) 
-	key = next(iter(counts))
+def delete_doc(bucket,key):
+	s3 = boto3.resource('s3')
+	s3.Object(bucket,key).delete()	
 
-
+def get_docs(bucket):
+	
