@@ -1,6 +1,10 @@
 import aws_bucket
 import aws_sqs
 
+def addToken():
+	att = {'Type':{'DataType':'String','StringValue':'Token'}}
+	mes = 'Token message'
+	aws_sqs.put_message(turl,mes,att)
 #Create the bucket
 bname = 'l-ta-bucket-p1'
 bucket = aws_bucket.create_bucket(bname)
@@ -17,7 +21,7 @@ ourl = aws_sqs.get_url(outbox)
 turl = aws_sqs.get_url(qtoken)
 print("Queues inbox, outbox and trafficl created")
 #Sending the token 
-aws_sqs.put_message(turl,'Token',{})
+addToken()
 #Adding the index file to the bucket
 file = 'Findex.json'
 f = open(file,"w")

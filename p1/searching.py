@@ -1,6 +1,6 @@
 import aws_bucket
 import aws_sqs
-import tag
+import json
 
 index = 'Findex.json'
 bname = 'l-ta-bucket-p1'
@@ -11,6 +11,20 @@ iurl = aws_sqs.get_url(inbox)
 ourl = aws_sqs.get_url(outbox)
 turl = aws_sqs.get_url(qtoken)
 
+def findIndex(tag):
+	with open(index) as f:
+		data = json.load(f)
+    if tag in data:
+    	docs = data[tag]
+    else:
+    	docs = None
+    return docs	
+
+def addToken():
+	att = {'Type':{'DataType':'String','StringValue':'Token'}}
+	mes = 'Token message'
+	aws_sqs.put_message(turl,mes,att)
+	
 while True:
 	m = None
 	while m is None:
@@ -34,11 +48,10 @@ while True:
 		rh = mtoken['Messages'][0]['ReceiptHandle']
 		aws_sqs.delete_message(turl,rh)
 		aws_bucket.get_doc_bucket(bname,index,index)
-		addFindex(key,tag)
-		aws_bucket.upload_doc_bucket(bname,index,index)
+		docs = findFindex(tag)
 		addToken()
 		#Send message to the client
-		mes = tag
+		mes = docs
 		att = {'Type':{'DataType':'String','StringValue':'Searching Response'},
 				'ClientId':{'DataType':'String','StringValue':clientid}
 				}
