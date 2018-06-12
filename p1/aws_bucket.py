@@ -2,9 +2,7 @@ import boto3
 import re
 import botocore
 import textract
-from collections import Counter
 
-#lorena-bucket
 def create_bucket(name):
   s3 = boto3.client('s3')
   s3.create_bucket(Bucket=name)
