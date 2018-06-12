@@ -6,9 +6,10 @@ bname = 'l-ta-bucket-p1'
 inbox = 'inbox'
 outbox = 'outbox'
 qtoken = 'token'
-iurl = aws_sqs.get_url_queue(inbox)
-ourl = aws_sqs.get_url_queue(outbox)
-turl = aws_sqs.get_url_queue(qtoken)
+iurl = aws_sqs.get_url(inbox)
+ourl = aws_sqs.get_url(outbox)
+turl = aws_sqs.get_url(qtoken)
+
 #Deleting the inndex file of the bucket
 
 #Ec2 instances	

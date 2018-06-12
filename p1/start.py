@@ -12,9 +12,9 @@ qtoken = 'token'
 iq = aws_sqs.create_queue(inbox)
 oq = aws_sqs.create_queue(outbox)
 tq = aws_sqs.create_queue(qtoken)
-iurl = aws_sqs.get_url_queue(inbox)
-ourl = aws_sqs.get_url_queue(outbox)
-turl = aws_sqs.get_url_queue(qtoken)
+iurl = aws_sqs.get_url(inbox)
+ourl = aws_sqs.get_url(outbox)
+turl = aws_sqs.get_url(qtoken)
 print("Queues inbox, outbox and trafficl created")
 #Sending the token 
 aws_sqs.put_message(turl,'Token',{})
