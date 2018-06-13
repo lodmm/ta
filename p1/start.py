@@ -24,7 +24,7 @@ print("Queues inbox, outbox and trafficl created")
 addToken()
 #Adding the index file to the bucket
 file = 'Findex.json'
-f = open(file,"w")
+f = open(file,"w").write('{}')
 aws_bucket.upload_doc_bucket(bname,file,file)
 #Ec2 instances
 

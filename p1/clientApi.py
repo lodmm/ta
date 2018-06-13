@@ -24,12 +24,35 @@ turl = aws_sqs.get_url(qtoken)
 
 def tagFile(filename):
 	aws_bucket.upload_doc_bucket(bname, filename, filename)
-	att = {'Type':{'DataType':'String','StringValue':'Tagging'},
-				'ClientId':{'DataType':'String','StringValue':clientID}}
-	body = filename			
-	aws_sqs.put_message(outfile,body,att)
-
-	addTags('')
+	att = {'Type':{'DataType':'String','StringValue':'Tagging'},'ClientId':{'DataType':'String','StringValue':str(clientID)}}
+	body = filename
+	r = None
+	while r is None:		
+		r = aws_sqs.put_message(iurl,body,att)
+	print('Message for tagging sent')
+	send = False
+	while send is False:
+		m = None
+		while m is None:
+			try:
+				messages = aws_sqs.read_message(ourl)
+				print(messages)
+				m = messages['Messages'][0]
+			except:
+				m = None		
+		typem = m['MessageAttributes']['Type']['StringValue']
+		if typem =='Tagging Response':
+			clientid = m['MessageAttributes']['ClientId']['StringValue']
+			if int(clientid) == clientID:
+				print('Tagging response received')	
+				tag = m['Body']
+				rhandle = m['ReceiptHandle']
+				addTags(tag)
+				aws_sqs.delete_message(ourl,rhandle)
+				print('The tag is: '+tag)
+				send = True
+			else:
+				send = False
 
 def searchTag(tag):
 	print tag

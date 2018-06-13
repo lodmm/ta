@@ -29,7 +29,7 @@ def put_message(urln, message, attributes):
 		)
 		return response	
 	except Exception as e:
-		print("It is not possible to put the message")
+		return None
 
 def read_message(urln):
 	sqs = boto3.client('sqs')

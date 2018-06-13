@@ -14,6 +14,7 @@ def upload_doc_bucket(name, filename, key):
 def get_doc_bucket(name,filename,key):
 	s3 = boto3.resource('s3')
 	try:
+		open(filename)
 		s3.Bucket(name).download_file(key, filename)
 	except botocore.exceptions.ClientError as e:
 		if e.response['Error']['Code'] == "404":

@@ -53,7 +53,7 @@ while True:
 		#Send message to the client
 		mes = docs
 		att = {'Type':{'DataType':'String','StringValue':'Searching Response'},
-				'ClientId':{'DataType':'String','StringValue':clientid}
+				'ClientId':{'DataType':'String','StringValue':str(clientid)}
 				}
 		aws_sqs.put_message(ourl,mes,att)		
 		aws_sqs.delete_message(iurl,rhandle)

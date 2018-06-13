@@ -9,14 +9,12 @@ def getRepeatedWord(filePath):
 	return max(words, key=words.get)
 
 def addFindex(key,tag):
-	
 	with open(index) as f:
 		data = json.load(f)
-
-    if tag in data:
-    	data[tag].append(key)
-    else:
-    	data[tag] = [key]
+	if tag in data:
+		data[tag].append(key)
+	else:
+		data[tag] = [key]
 
 	with open(index, 'w') as outfile:
 		json.dump(data, outfile)
@@ -41,9 +39,11 @@ while True:
 	while m is None:
 		try:
 			messages = aws_sqs.read_message(iurl)
+			print(messages)
 			m = messages['Messages'][0]
 		except:
 			m = None		
+	print('Tagging message received')
 	typem = m['MessageAttributes']['Type']['StringValue']
 	if typem =='Tagging':
 		clientid = m['MessageAttributes']['ClientId']['StringValue']
@@ -53,12 +53,18 @@ while True:
 		filename = key
 		aws_bucket.get_doc_bucket(bname,filename,key)
 		tag = getRepeatedWord(filename)
+		print('The tag of the file is '+tag)
 		#Get the token
-		mtkone = None
+		mtoken = None
 		while (mtoken is None):
-			mtoken = aws_sqs.read_message(turl)
-		rh = mtoken['Messages'][0]['ReceiptHandle']
+			try:
+				messages = aws_sqs.read_message(turl)
+				mtoken = messages['Messages'][0]
+			except:
+				mtoken = None	
+		rh = mtoken['ReceiptHandle']
 		aws_sqs.delete_message(turl,rh)
+		print('Token received')
 		aws_bucket.get_doc_bucket(bname,index,index)
 		addFindex(key,tag)
 		aws_bucket.upload_doc_bucket(bname,index,index)
@@ -66,9 +72,10 @@ while True:
 		#Send message to the client
 		mes = tag
 		att = {'Type':{'DataType':'String','StringValue':'Tagging Response'},
-				'ClientId':{'DataType':'String','StringValue':clientid}
+				'ClientId':{'DataType':'String','StringValue':str(clientid)}
 				}
 		aws_sqs.put_message(ourl,mes,att)		
 		aws_sqs.delete_message(iurl,rhandle)
+		print('Tagging response send')
 	else:
 		print('The message is not for tagging')	
