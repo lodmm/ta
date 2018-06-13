@@ -1,5 +1,6 @@
 import json
 import sys
+import ast
 import aws_bucket
 import aws_sqs
 import os
@@ -23,9 +24,20 @@ ourl = aws_sqs.get_url(outbox)
 turl = aws_sqs.get_url(qtoken)
 
 def downloadFiles(docs):
+	docs = ast.literal_eval(docs)
 	for i in docs:
 		open(i)
 		aws_bucket.get_doc_bucket(bname,i,i)
+	print('Files downloaded')	
+
+def printDocs(docs):
+	docs = ast.literal_eval(docs)
+	if docs is None:
+		print('There are no files for that tag')
+	else:
+		print('The files are:\n')
+		for i in docs:
+			print('\t'+i)
 
 def tagFile(filename):
 	aws_bucket.upload_doc_bucket(bname, filename, filename)
@@ -53,7 +65,7 @@ def tagFile(filename):
 				rhandle = m['ReceiptHandle']
 				addTags(tag)
 				aws_sqs.delete_message(ourl,rhandle)
-				print('The tag is: '+tag)
+				print('The tag is: '+tag+'\n\n')
 				send = True
 			else:
 				send = False
@@ -78,12 +90,12 @@ def searchTag(tag):
 		if typem =='Searching Response':
 			clientid = m['MessageAttributes']['ClientId']['StringValue']
 			if int(clientid) == clientID:
-				print('Tagging response received')	
+				print('Searching response received')	
 				docs = m['Body']
 				rhandle = m['ReceiptHandle']
 				aws_sqs.delete_message(ourl,rhandle)
+				printDocs(docs)
 				downloadFiles(docs)
-				print('The docs are: '+docs+'\n\n')
 				send = True
 			else:
 				send = False
@@ -126,7 +138,7 @@ def switch_demo(argument):
 
 while True:
 	try:
-		argument = raw_input('What do you want to do?:\n1.'+switcher.get(1)+
+		argument = raw_input('\n\nWhat do you want to do?:\n1.'+switcher.get(1)+
 			'\n2.'+switcher.get(2)+'\n3.'+switcher.get(3)+
 			'\n4.'+switcher.get(4)+
 			'\n5.'+switcher.get(5)+'\n\n') 

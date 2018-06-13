@@ -32,9 +32,10 @@ while True:
 			messages = aws_sqs.read_message(iurl)
 			m = messages['Messages'][0]
 		except:
-			m = None		
+			m = None	
 	typem = m['MessageAttributes']['Type']['StringValue']
 	if typem =='Searching':
+		print('Message of Searching received')	
 		clientid = m['MessageAttributes']['ClientId']['StringValue']
 		tag = m['Body']
 		rhandle = m['ReceiptHandle']	
@@ -45,17 +46,21 @@ while True:
 				messages = aws_sqs.read_message(turl)
 				mtoken = messages['Messages'][0]
 			except:
-				mtoken = None	
+				mtoken = None
+		print('Token received')			
 		rh = mtoken['ReceiptHandle']
 		aws_sqs.delete_message(turl,rh)
 		docs = findIndex(tag)
 		addToken()
 		#Send message to the client
-		mes = docs
+		mes = str(docs)
 		att = {'Type':{'DataType':'String','StringValue':'Searching Response'},
 				'ClientId':{'DataType':'String','StringValue':str(clientid)}
 				}
-		aws_sqs.put_message(ourl,mes,att)		
+		r = None
+		while r is None:		
+			r = aws_sqs.put_message(ourl,mes,att)
+		print('Searching response send')		
 		aws_sqs.delete_message(iurl,rhandle)
 	else:
 		print('The message is not for searching')	

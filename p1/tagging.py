@@ -42,9 +42,9 @@ while True:
 			m = messages['Messages'][0]
 		except:
 			m = None		
-	print('Tagging message received')
 	typem = m['MessageAttributes']['Type']['StringValue']
 	if typem =='Tagging':
+		print('Tagging message received')
 		clientid = m['MessageAttributes']['ClientId']['StringValue']
 		key = m['Body']
 		rhandle = m['ReceiptHandle']
