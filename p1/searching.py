@@ -14,11 +14,11 @@ turl = aws_sqs.get_url(qtoken)
 def findIndex(tag):
 	with open(index) as f:
 		data = json.load(f)
-    if tag in data:
-    	docs = data[tag]
-    else:
-    	docs = None
-    return docs	
+	if tag in data:
+		docs = data[tag]
+	else:
+		docs = None
+	return docs	
 
 def addToken():
 	att = {'Type':{'DataType':'String','StringValue':'Token'}}
@@ -37,18 +37,18 @@ while True:
 	if typem =='Searching':
 		clientid = m['MessageAttributes']['ClientId']['StringValue']
 		tag = m['Body']
-		rhandle = m['ReceiptHandle']
-		#Get the document form the bucket
-		aws_bucket.get_doc_bucket(bname,filename,key)
-		tag = getRepeatedWord(filename)
+		rhandle = m['ReceiptHandle']	
 		#Get the token
-		mtkone = None
+		mtoken = None
 		while (mtoken is None):
-			mtoken = aws_sqs.read_message(turl)
-		rh = mtoken['Messages'][0]['ReceiptHandle']
+			try:
+				messages = aws_sqs.read_message(turl)
+				mtoken = messages['Messages'][0]
+			except:
+				mtoken = None	
+		rh = mtoken['ReceiptHandle']
 		aws_sqs.delete_message(turl,rh)
-		aws_bucket.get_doc_bucket(bname,index,index)
-		docs = findFindex(tag)
+		docs = findIndex(tag)
 		addToken()
 		#Send message to the client
 		mes = docs

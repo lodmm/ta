@@ -25,6 +25,7 @@ def put_message(urln, message, attributes):
 		response = sqs.send_message(
 			QueueUrl = urln,
 			MessageBody = (message),
+			DelaySeconds = 15,
 			MessageAttributes = attributes	
 		)
 		return response	
@@ -37,6 +38,7 @@ def read_message(urln):
 		response = sqs.receive_message(QueueUrl=urln,
 			AttributeNames=['SentTimestamp'],
 			MessageAttributeNames=['All'],
+			WaitTimeSeconds=20,
 			MaxNumberOfMessages=1)	
 		return response	
 	except Exception as e:

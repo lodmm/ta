@@ -22,6 +22,11 @@ iurl = aws_sqs.get_url(inbox)
 ourl = aws_sqs.get_url(outbox)
 turl = aws_sqs.get_url(qtoken)
 
+def downloadFiles(docs):
+	for i in docs:
+		open(i)
+		aws_bucket.get_doc_bucket(bname,i,i)
+
 def tagFile(filename):
 	aws_bucket.upload_doc_bucket(bname, filename, filename)
 	att = {'Type':{'DataType':'String','StringValue':'Tagging'},'ClientId':{'DataType':'String','StringValue':str(clientID)}}
@@ -36,7 +41,6 @@ def tagFile(filename):
 		while m is None:
 			try:
 				messages = aws_sqs.read_message(ourl)
-				print(messages)
 				m = messages['Messages'][0]
 			except:
 				m = None		
@@ -55,7 +59,34 @@ def tagFile(filename):
 				send = False
 
 def searchTag(tag):
-	print tag
+	att = {'Type':{'DataType':'String','StringValue':'Searching'},'ClientId':{'DataType':'String','StringValue':str(clientID)}}
+	body = tag
+	r = None
+	while r is None:		
+		r = aws_sqs.put_message(iurl,body,att)
+	print('Message for searching sent')
+	send = False
+	while send is False:
+		m = None
+		while m is None:
+			try:
+				messages = aws_sqs.read_message(ourl)
+				m = messages['Messages'][0]
+			except:
+				m = None		
+		typem = m['MessageAttributes']['Type']['StringValue']
+		if typem =='Searching Response':
+			clientid = m['MessageAttributes']['ClientId']['StringValue']
+			if int(clientid) == clientID:
+				print('Tagging response received')	
+				docs = m['Body']
+				rhandle = m['ReceiptHandle']
+				aws_sqs.delete_message(ourl,rhandle)
+				downloadFiles(docs)
+				print('The docs are: '+docs+'\n\n')
+				send = True
+			else:
+				send = False
 
 def clearTags():
 	try:

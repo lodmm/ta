@@ -39,7 +39,6 @@ while True:
 	while m is None:
 		try:
 			messages = aws_sqs.read_message(iurl)
-			print(messages)
 			m = messages['Messages'][0]
 		except:
 			m = None		
