@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+import cherrypy
+import codecs
 import json
 import sys
 import ast
@@ -6,13 +9,6 @@ import aws_sqs
 import os
 import signal
 
-switcher = {
-        1: "Tagging",
-        2: "Searching",
-        3: "List tags",
-        4: "Remove tag list",
-        5: "Exit"
-    }
 
 clientID =  os.getpid()
 index = 'Findex.json'
@@ -68,8 +64,11 @@ def tagFile(filename):
 				aws_sqs.delete_message(ourl,rhandle)
 				print('The tag is: '+tag+'\n\n')
 				send = True
+				return tag
+				
 			else:
 				send = False
+				
 
 def searchTag(tag):
 	att = {'Type':{'DataType':'String','StringValue':'Searching'},'ClientId':{'DataType':'String','StringValue':str(clientID)}}
@@ -98,8 +97,10 @@ def searchTag(tag):
 				printDocs(docs)
 				downloadFiles(docs)
 				send = True
+				return docs
 			else:
 				send = False
+
 
 def clearTags():
 	try:
@@ -112,8 +113,7 @@ def clearTags():
 	except:	
 		print('\nTags list removed\n')
 
-def signal_handler(signum, frame):
-	sys.exit(0)
+
 
 def listTags():
 	try:
@@ -136,35 +136,84 @@ def addTags(tag):
 	with open('tags.json', 'w') as outfile:
 		json.dump(data, outfile)
 
-def switch_demo(argument):
-    print ('\n Your option is '+switcher.get(argument, "Invalid")+'\n')
+class ClientWeb(object):
 
 
-while True:
-	try:
-		argument = raw_input('\n\nWhat do you want to do?:\n1.'+switcher.get(1)+
-			'\n2.'+switcher.get(2)+'\n3.'+switcher.get(3)+
-			'\n4.'+switcher.get(4)+
-			'\n5.'+switcher.get(5)+'\n\n') 
-		switch_demo(int(argument))
-	except:
-		print('\n\nInvalid select\n\n')	
-		break
-	if int(argument) is 1:
-		filename = raw_input('\nIntroduce the name of the file you want to tag:\n')
-		tagFile(filename)
-	else:
-		if int(argument) is 2:
-			tag = raw_input('\nIntroduce the tag you want to search:\n')
-			searchTag(tag)
-		else:
-			if int(argument) is 3:		
-				tags = listTags()
-				if tags is not None:
-					for i in tags: print(i+"\n")
-			else:
-				if int(argument) is 4:
-					clearTags()
-				else:
-					if int(argument) is 5:		
-						break
+	@cherrypy.expose
+	def index(self):
+		return """<html>
+			<head></head>
+			<body>
+			<h1>Client Application</h1>
+			<h2>Tagging a file</h2>
+			<form method="post" enctype="multipart/form-data" action="tagging"">
+				<input type="text" name="file" id="file"/><br><br>
+				<input type="submit" value="Start">
+			</form>
+			<h2>Searching a tag</h2>
+			<form method="post" action="searching" ">
+				<input type="text" name="tag" id="tag"><br><br>
+				<input type="submit" value="Start">
+			</form>	
+			<h2>List tags</h2>
+			<form method="post" action="listTags" ">
+				<input type="submit" value="List"><br><br>
+			</form>	
+			<h2>Clear tags</h2>
+			<form method="post" action="clearTags" ">
+				<input type="submit" value="Clear" ><br><br>
+			</form>		
+			</body>
+			</html>"""
+
+	@cherrypy.expose
+	def tagging(self, file):
+		"Main menu to select interest"
+		reader = codecs.getreader("utf-8")
+		if file is not None: 
+			tag = tagFile(file)
+			print(file)
+			out = """<html><body>
+					<h2>Waiting for the the tag result</h2>
+					The file that is being tagging is: {file:}<br><br>
+					The getting tag is: {tag}
+					</body></html>""".format(file=file,tag=tag)
+		return out					
+
+	@cherrypy.expose
+	def searching(self, tag):
+		"Main menu to select interest"
+		reader = codecs.getreader("utf-8")
+		if file is not None: 
+			docs = searchTag(tag)
+			print(tag)
+		out = """<html><body>
+				<h2>Waiting for the the search result</h2>
+				The tag you are searching for is: {tag:}<br><br>
+				The files for that tag are: {docs:}
+				</body></html>""".format(tag=tag,docs=docs) 
+		return out	
+
+	@cherrypy.expose
+	def listTags(self):
+		"Main menu to select interest"
+		reader = codecs.getreader("utf-8")
+		out = """<html><body>
+				<h2>Tags</h2>
+				</body></html>"""
+		return out	
+
+	@cherrypy.expose
+	def clearTags(self):
+		"Main menu to select interest"
+		reader = codecs.getreader("utf-8")
+		out = """<html><body>
+				<h2>The list of tags was cleared</h2>
+				</body></html>"""
+		return out					
+				
+
+
+
+if __name__ == '__main__':
+	cherrypy.quickstart(ClientWeb())
