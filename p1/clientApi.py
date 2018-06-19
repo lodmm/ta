@@ -10,8 +10,7 @@ switcher = {
         1: "Tagging",
         2: "Searching",
         3: "List tags",
-        4: "Remove tag list",
-        5: "Exit"
+        4: "Exit"
     }
 
 clientID =  os.getpid()
@@ -27,7 +26,9 @@ turl = aws_sqs.get_url(qtoken)
 def downloadFiles(docs):
 	docs = ast.literal_eval(docs)
 	for i in docs:
-		aws_bucket.get_doc_bucket(bname,i[0],i[0])
+		s = i[0].split('_')
+		key = s[1]
+		aws_bucket.get_doc_bucket(bname,key,i[0])
 	print('\nFiles downloaded\n')	
 
 def printDocs(docs):
@@ -37,12 +38,14 @@ def printDocs(docs):
 	else:
 		print('The files are:\n')
 		for i in docs:
-			print('\t'+i[0]+'\n')
+			s = i[0].split('_')
+			print('\t'+s[1]+'\n')
 
 def tagFile(filename):
-	aws_bucket.upload_doc_bucket(bname, filename, filename)
+	dfilename = str(clientID) + '_' + filename
+	aws_bucket.upload_doc_bucket(bname, filename, dfilename)
 	att = {'Type':{'DataType':'String','StringValue':'Tagging'},'ClientId':{'DataType':'String','StringValue':str(clientID)}}
-	body = filename
+	body = dfilename
 	r = None
 	while r is None:		
 		r = aws_sqs.put_message(iurl,body,att)
@@ -144,7 +147,7 @@ while True:
 		argument = raw_input('\n\nWhat do you want to do?:\n1.'+switcher.get(1)+
 			'\n2.'+switcher.get(2)+'\n3.'+switcher.get(3)+
 			'\n4.'+switcher.get(4)+
-			'\n5.'+switcher.get(5)+'\n\n') 
+			'\n\n') 
 		switch_demo(int(argument))
 	except:
 		print('\n\nInvalid select\n\n')	
@@ -162,8 +165,5 @@ while True:
 				if tags is not None:
 					for i in tags: print(i+"\n")
 			else:
-				if int(argument) is 4:
-					clearTags()
-				else:
-					if int(argument) is 5:		
-						break
+				if int(argument) is 4:		
+					break

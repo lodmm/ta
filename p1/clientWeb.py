@@ -23,7 +23,9 @@ turl = aws_sqs.get_url(qtoken)
 def downloadFiles(docs):
 	docs = ast.literal_eval(docs)
 	for i in docs:
-		aws_bucket.get_doc_bucket(bname,i,i)
+		s = i[0].split('/')
+		key = s[1]
+		aws_bucket.get_doc_bucket(bname,i[0],key)
 	print('\nFiles downloaded\n')	
 
 def printDocs(docs):
@@ -33,10 +35,12 @@ def printDocs(docs):
 	else:
 		print('The files are:\n')
 		for i in docs:
-			print('\t'+i+'\n')
+			s = i.split('_')
+			print('\t'+s[1]+'\n')
 
 def tagFile(filename):
-	aws_bucket.upload_doc_bucket(bname, filename, filename)
+	dfilename = str(clientID) + '/' + filename
+	aws_bucket.upload_doc_bucket(bname, filename, dfilename)
 	att = {'Type':{'DataType':'String','StringValue':'Tagging'},'ClientId':{'DataType':'String','StringValue':str(clientID)}}
 	body = filename
 	r = None
@@ -153,10 +157,6 @@ class ClientWeb(object):
 			<h2>List tags</h2>
 			<form method="post" action="listTags" ">
 				<input type="submit" value="List"><br><br>
-			</form>	
-			<h2>Clear tags</h2>
-			<form method="post" action="clearTags" ">
-				<input type="submit" value="Clear" ><br><br>
 			</form>		
 			</body>
 			</html>"""
@@ -198,15 +198,6 @@ class ClientWeb(object):
 				</body></html>"""
 		return out	
 
-	@cherrypy.expose
-	def clearTags(self):
-		"Main menu to select interest"
-		reader = codecs.getreader("utf-8")
-		out = """<html><body>
-				<h2>The list of tags was cleared</h2>
-				</body></html>"""
-		return out					
-				
 
 
 
