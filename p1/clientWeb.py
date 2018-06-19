@@ -8,9 +8,9 @@ import aws_bucket
 import aws_sqs
 import os
 import signal
+import random
 
 
-clientID =  
 index = 'Findex.json'
 bname = 'l-ta-bucket-p1'
 inbox = 'inbox'
@@ -22,27 +22,47 @@ turl = aws_sqs.get_url(qtoken)
 
 def downloadFiles(docs):
 	docs = ast.literal_eval(docs)
-	for i in docs:
-		s = i[0].split('/')
-		key = s[1]
-		aws_bucket.get_doc_bucket(bname,i[0],key)
-	print('\nFiles downloaded\n')	
-
+	g = []
+	if docs is not None:
+		for i in docs:
+			s = i[0].split('_')
+			if s[1] not in g:
+				g.append(s[1])
+				key = s[1]
+				aws_bucket.get_doc_bucket(bname,key,i[0])
+			else:
+				r = str(random.randint(1,1001))
+				key = r+s[1]
+				aws_bucket.get_doc_bucket(bname,key,i[0])	
+		print('\nFiles downloaded\n')	
+		
 def printDocs(docs):
+	docs_aux = []
+	g = []
 	docs = ast.literal_eval(docs)
 	if docs is None:
 		print('There are no files for that tag\n')
 	else:
 		print('The files are:\n')
 		for i in docs:
-			s = i.split('_')
-			print('\t'+s[1]+'\n')
+			s = i[0].split('_')
+			if s[1] not in g:
+				g.append(s[1])
+				print('\t'+s[1]+'\n')
+				docs_aux.append(s[1])
+			else:
+				r = str(random.randint(1,1001))
+				print('\t'+r+s[1]+'\n')
+				docs_aux.append(r+s[1])	
+		return docs_aux
 
 def tagFile(filename):
-	dfilename = str(clientID) + '/' + filename
+	clientID =  cherrypy.session.id
+	dfilename = str(clientID) + '_' + filename
 	aws_bucket.upload_doc_bucket(bname, filename, dfilename)
 	att = {'Type':{'DataType':'String','StringValue':'Tagging'},'ClientId':{'DataType':'String','StringValue':str(clientID)}}
-	body = filename
+	body = dfilename
+	
 	r = None
 	while r is None:		
 		r = aws_sqs.put_message(iurl,body,att)
@@ -59,7 +79,7 @@ def tagFile(filename):
 		typem = m['MessageAttributes']['Type']['StringValue']
 		if typem =='Tagging Response':
 			clientid = m['MessageAttributes']['ClientId']['StringValue']
-			if int(clientid) == clientID:
+			if clientid == clientID:
 				print('Tagging response received\n')	
 				tag = m['Body']
 				rhandle = m['ReceiptHandle']
@@ -73,6 +93,7 @@ def tagFile(filename):
 				send = False
 				
 def searchTag(tag):
+	clientID =  cherrypy.session.id
 	att = {'Type':{'DataType':'String','StringValue':'Searching'},'ClientId':{'DataType':'String','StringValue':str(clientID)}}
 	body = tag
 	r = None
@@ -91,28 +112,17 @@ def searchTag(tag):
 		typem = m['MessageAttributes']['Type']['StringValue']
 		if typem =='Searching Response':
 			clientid = m['MessageAttributes']['ClientId']['StringValue']
-			if int(clientid) == clientID:
+			if clientid == clientID:
 				print('Searching response received\n')	
 				docs = m['Body']
 				rhandle = m['ReceiptHandle']
 				aws_sqs.delete_message(ourl,rhandle)
-				printDocs(docs)
+				docs_aux = printDocs(docs)
 				downloadFiles(docs)
 				send = True
-				return docs
+				return docs_aux
 			else:
 				send = False
-
-def clearTags():
-	try:
-		with open('tags.json') as f:
-			data = json.load(f)
-		data['tags'] = []
-		with open('tags.json', 'w') as outfile:
-			json.dump(data, outfile)
-		print('\nTags list removed\n')	
-	except:	
-		print('\nTags list removed\n')
 
 def listTags():
 	try:
@@ -140,6 +150,8 @@ class ClientWeb(object):
 
 	@cherrypy.expose
 	def index(self):
+		clientID =  cherrypy.session.id
+		print(clientID)
 		return """<html>
 			<head></head>
 			<body>
@@ -181,25 +193,27 @@ class ClientWeb(object):
 		reader = codecs.getreader("utf-8")
 		if file is not None: 
 			docs = searchTag(tag)
-			print(tag)
 		out = """<html><body>
 				<h2>Waiting for the the search result</h2>
 				The tag you are searching for is: {tag:}<br><br>
 				The files for that tag are: {docs:}
-				</body></html>""".format(tag=tag,docs=docs) 
+				</body></html>""".format(tag=tag,docs=', '.join(docs)) 
 		return out	
 
 	@cherrypy.expose
 	def listTags(self):
 		"Main menu to select interest"
+		tags = listTags()
 		reader = codecs.getreader("utf-8")
 		out = """<html><body>
 				<h2>Tags</h2>
+
 				</body></html>"""
 		return out	
 
 
-
+cherrypy.config.update({'tools.sessions.on': True                           
+               })
 
 if __name__ == '__main__':
 	cherrypy.quickstart(ClientWeb())

@@ -5,6 +5,7 @@ import aws_bucket
 import aws_sqs
 import os
 import signal
+import random
 
 switcher = {
         1: "Tagging",
@@ -25,21 +26,29 @@ turl = aws_sqs.get_url(qtoken)
 
 def downloadFiles(docs):
 	docs = ast.literal_eval(docs)
-	for i in docs:
-		s = i[0].split('_')
-		key = s[1]
-		aws_bucket.get_doc_bucket(bname,key,i[0])
-	print('\nFiles downloaded\n')	
-
-def printDocs(docs):
-	docs = ast.literal_eval(docs)
-	if docs is None:
-		print('There are no files for that tag\n')
-	else:
+	g = []
+	if docs is not None:
 		print('The files are:\n')
 		for i in docs:
 			s = i[0].split('_')
-			print('\t'+s[1]+'\n')
+			if s[1] not in g:
+				g.append(s[1])
+				key = s[1]
+				aws_bucket.get_doc_bucket(bname,key,i[0])
+				print('\t'+s[1]+'\n')
+			else:
+				r = str(random.randint(1,1001))
+				key = r+s[1]
+				aws_bucket.get_doc_bucket(bname,key,i[0])
+				print('\t'+r+s[1]+'\n')	
+		print('\nFiles downloaded\n')	
+	else:
+		print('There are no files for that tag\n')
+
+
+		
+		
+				
 
 def tagFile(filename):
 	dfilename = str(clientID) + '_' + filename
@@ -62,7 +71,7 @@ def tagFile(filename):
 		typem = m['MessageAttributes']['Type']['StringValue']
 		if typem =='Tagging Response':
 			clientid = m['MessageAttributes']['ClientId']['StringValue']
-			if int(clientid) == clientID:
+			if clientid == str(clientID):
 				print('Tagging response received\n')	
 				tag = m['Body']
 				rhandle = m['ReceiptHandle']
@@ -92,12 +101,11 @@ def searchTag(tag):
 		typem = m['MessageAttributes']['Type']['StringValue']
 		if typem =='Searching Response':
 			clientid = m['MessageAttributes']['ClientId']['StringValue']
-			if int(clientid) == clientID:
+			if clientid == str(clientID):
 				print('Searching response received\n')	
 				docs = m['Body']
 				rhandle = m['ReceiptHandle']
 				aws_sqs.delete_message(ourl,rhandle)
-				printDocs(docs)
 				downloadFiles(docs)
 				send = True
 			else:
