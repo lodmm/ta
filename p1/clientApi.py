@@ -27,8 +27,7 @@ turl = aws_sqs.get_url(qtoken)
 def downloadFiles(docs):
 	docs = ast.literal_eval(docs)
 	for i in docs:
-		open(i)
-		aws_bucket.get_doc_bucket(bname,i,i)
+		aws_bucket.get_doc_bucket(bname,i[0],i[0])
 	print('\nFiles downloaded\n')	
 
 def printDocs(docs):
@@ -38,7 +37,7 @@ def printDocs(docs):
 	else:
 		print('The files are:\n')
 		for i in docs:
-			print('\t'+i+'\n')
+			print('\t'+i[0]+'\n')
 
 def tagFile(filename):
 	aws_bucket.upload_doc_bucket(bname, filename, filename)

@@ -10,7 +10,7 @@ import os
 import signal
 
 
-clientID =  os.getpid()
+clientID =  
 index = 'Findex.json'
 bname = 'l-ta-bucket-p1'
 inbox = 'inbox'
@@ -23,7 +23,6 @@ turl = aws_sqs.get_url(qtoken)
 def downloadFiles(docs):
 	docs = ast.literal_eval(docs)
 	for i in docs:
-		open(i)
 		aws_bucket.get_doc_bucket(bname,i,i)
 	print('\nFiles downloaded\n')	
 
@@ -69,7 +68,6 @@ def tagFile(filename):
 			else:
 				send = False
 				
-
 def searchTag(tag):
 	att = {'Type':{'DataType':'String','StringValue':'Searching'},'ClientId':{'DataType':'String','StringValue':str(clientID)}}
 	body = tag
@@ -101,7 +99,6 @@ def searchTag(tag):
 			else:
 				send = False
 
-
 def clearTags():
 	try:
 		with open('tags.json') as f:
@@ -112,8 +109,6 @@ def clearTags():
 		print('\nTags list removed\n')	
 	except:	
 		print('\nTags list removed\n')
-
-
 
 def listTags():
 	try:

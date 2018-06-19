@@ -6,15 +6,19 @@ import aws_sqs
 # Install from http://textract.readthedocs.io/en/latest/installation.html
 def getRepeatedWord(filePath):
 	words = Counter(textract.process(filePath).split())
-	return max(words, key=words.get)
+	return max(words, key=words.get),words.get(max(words, key=words.get))
 
-def addFindex(key,tag):
+def addFindex(key,tag,n):
+	d = dict()
 	with open(index) as f:
 		data = json.load(f)
 	if tag in data:
-		data[tag].append(key)
+		d = data.get(tag)
+		d[key] = n
+		data[tag] = d
 	else:
-		data[tag] = [key]
+		d[key] = n
+		data[tag] = d
 
 	with open(index, 'w') as outfile:
 		json.dump(data, outfile)
@@ -51,7 +55,7 @@ while True:
 		#Get the document form the bucket
 		filename = key
 		aws_bucket.get_doc_bucket(bname,filename,key)
-		tag = getRepeatedWord(filename)
+		tag,n = getRepeatedWord(filename)
 		print('The tag of the file is '+tag)
 		#Get the token
 		mtoken = None
@@ -65,7 +69,7 @@ while True:
 		aws_sqs.delete_message(turl,rh)
 		print('Token received')
 		aws_bucket.get_doc_bucket(bname,index,index)
-		addFindex(key,tag)
+		addFindex(key,tag,n)
 		aws_bucket.upload_doc_bucket(bname,index,index)
 		addToken()
 		#Send message to the client
@@ -76,5 +80,4 @@ while True:
 		aws_sqs.put_message(ourl,mes,att)		
 		aws_sqs.delete_message(iurl,rhandle)
 		print('Tagging response send')
-	else:
-		print('The message is not for tagging')	
+	

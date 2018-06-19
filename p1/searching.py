@@ -1,6 +1,7 @@
 import aws_bucket
 import aws_sqs
 import json
+import operator
 
 index = 'Findex.json'
 bname = 'l-ta-bucket-p1'
@@ -12,10 +13,16 @@ ourl = aws_sqs.get_url(outbox)
 turl = aws_sqs.get_url(qtoken)
 
 def findIndex(tag):
+	d = dict()
 	with open(index) as f:
 		data = json.load(f)
 	if tag in data:
-		docs = data[tag]
+		d = data[tag]
+		s = sorted(d.items(), key=operator.itemgetter(1), reverse=True)
+		if len(s) > 10:
+			docs = s[:10]
+		else:
+			docs = s	
 	else:
 		docs = None
 	return docs	
@@ -62,6 +69,5 @@ while True:
 			r = aws_sqs.put_message(ourl,mes,att)
 		print('Searching response send')		
 		aws_sqs.delete_message(iurl,rhandle)
-	else:
-		print('The message is not for searching')	
+	
 	
