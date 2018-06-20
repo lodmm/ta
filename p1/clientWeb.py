@@ -12,7 +12,7 @@ import random
 
 
 index = 'Findex.json'
-bname = 'l-ta-bucket-p1'
+bname = 'lo-ta-bucket-p1'
 inbox = 'inbox'
 outbox = 'outbox'
 qtoken = 'token'
@@ -39,6 +39,7 @@ def downloadFiles(docs):
 def printDocs(docs):
 	docs_aux = []
 	g = []
+	urls = []
 	docs = ast.literal_eval(docs)
 	if docs is None:
 		print('There are no files for that tag\n')
@@ -49,12 +50,16 @@ def printDocs(docs):
 			if s[1] not in g:
 				g.append(s[1])
 				print('\t'+s[1]+'\n')
+				u = aws_bucket.get_url(bname,i[0])
 				docs_aux.append(s[1])
+				urls.append(u)
 			else:
 				r = str(random.randint(1,1001))
 				print('\t'+r+s[1]+'\n')
+				u = aws_bucket.get_url(bname,i[0])
 				docs_aux.append(r+s[1])	
-		return docs_aux
+				urls.append(u)
+		return docs_aux,urls
 
 def tagFile(filename):
 	clientID =  cherrypy.session.id
@@ -74,15 +79,17 @@ def tagFile(filename):
 			try:
 				messages = aws_sqs.read_message(ourl)
 				m = messages['Messages'][0]
+				rhandle = m['ReceiptHandle']
+				aws_sqs.change_vis(ourl, rhandle, 40)
 			except:
 				m = None		
 		typem = m['MessageAttributes']['Type']['StringValue']
 		if typem =='Tagging Response':
 			clientid = m['MessageAttributes']['ClientId']['StringValue']
 			if clientid == clientID:
+				aws_sqs.change_vis(ourl, rhandle, 20)
 				print('Tagging response received\n')	
 				tag = m['Body']
-				rhandle = m['ReceiptHandle']
 				addTags(tag)
 				aws_sqs.delete_message(ourl,rhandle)
 				print('The tag is: '+tag+'\n\n')
@@ -107,26 +114,28 @@ def searchTag(tag):
 			try:
 				messages = aws_sqs.read_message(ourl)
 				m = messages['Messages'][0]
+				rhandle = m['ReceiptHandle']
+				aws_sqs.change_vis(ourl, rhandle, 40)
 			except:
 				m = None		
 		typem = m['MessageAttributes']['Type']['StringValue']
 		if typem =='Searching Response':
 			clientid = m['MessageAttributes']['ClientId']['StringValue']
 			if clientid == clientID:
+				aws_sqs.change_vis(ourl, rhandle, 100)
 				print('Searching response received\n')	
 				docs = m['Body']
-				rhandle = m['ReceiptHandle']
 				aws_sqs.delete_message(ourl,rhandle)
 				docs_aux = printDocs(docs)
-				downloadFiles(docs)
 				send = True
 				return docs_aux
 			else:
 				send = False
 
 def listTags():
+	clientID =  cherrypy.session.id
 	try:
-		with open('tags.json') as f:
+		with open(clientID+'tags.json') as f:
 			data = json.load(f)
 		return data['tags']
 	except:
@@ -134,15 +143,16 @@ def listTags():
 		return None
 
 def addTags(tag):
+	clientID =  cherrypy.session.id
 	try:
-		with open('tags.json') as f:
+		with open(clientID+'tags.json') as f:
 			data = json.load(f)
 	except:	
 			data = dict()
 			data['tags'] = []
 	if tag not in data['tags']:
 		data['tags'].append(tag)
-	with open('tags.json', 'w') as outfile:
+	with open(clientID+'tags.json', 'w') as outfile:
 		json.dump(data, outfile)
 
 class ClientWeb(object):
@@ -150,6 +160,7 @@ class ClientWeb(object):
 
 	@cherrypy.expose
 	def index(self):
+		addTags('')
 		clientID =  cherrypy.session.id
 		print(clientID)
 		return """<html>
@@ -181,7 +192,7 @@ class ClientWeb(object):
 			tag = tagFile(file)
 			print(file)
 			out = """<html><body>
-					<h2>Waiting for the the tag result</h2>
+					<h2>Tag result</h2>
 					The file that is being tagging is: {file:}<br><br>
 					The getting tag is: {tag}
 					</body></html>""".format(file=file,tag=tag)
@@ -192,12 +203,13 @@ class ClientWeb(object):
 		"Main menu to select interest"
 		reader = codecs.getreader("utf-8")
 		if file is not None: 
-			docs = searchTag(tag)
+			docs,urls = searchTag(tag)
 		out = """<html><body>
-				<h2>Waiting for the the search result</h2>
+				<h2>Search result</h2>
 				The tag you are searching for is: {tag:}<br><br>
-				The files for that tag are: {docs:}
-				</body></html>""".format(tag=tag,docs=', '.join(docs)) 
+				The files for that tag are: {docs:} <br><br>
+				Download the files in: {urls:} <br><br>
+				</body></html>""".format(tag=tag,docs=', '.join(docs),urls=', '.join(urls)) 
 		return out	
 
 	@cherrypy.expose
@@ -207,8 +219,8 @@ class ClientWeb(object):
 		reader = codecs.getreader("utf-8")
 		out = """<html><body>
 				<h2>Tags</h2>
-
-				</body></html>"""
+				{tags:}	
+				</body></html>""".format('\n'.join(tags))
 		return out	
 
 

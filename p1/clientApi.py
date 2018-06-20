@@ -16,7 +16,7 @@ switcher = {
 
 clientID =  os.getpid()
 index = 'Findex.json'
-bname = 'l-ta-bucket-p1'
+bname = 'lo-ta-bucket-p1'
 inbox = 'inbox'
 outbox = 'outbox'
 qtoken = 'token'
@@ -46,10 +46,6 @@ def downloadFiles(docs):
 		print('There are no files for that tag\n')
 
 
-		
-		
-				
-
 def tagFile(filename):
 	dfilename = str(clientID) + '_' + filename
 	aws_bucket.upload_doc_bucket(bname, filename, dfilename)
@@ -66,15 +62,17 @@ def tagFile(filename):
 			try:
 				messages = aws_sqs.read_message(ourl)
 				m = messages['Messages'][0]
+				rhandle = m['ReceiptHandle']
+				aws_sqs.change_vis(ourl, rhandle, 40)
 			except:
 				m = None		
 		typem = m['MessageAttributes']['Type']['StringValue']
 		if typem =='Tagging Response':
 			clientid = m['MessageAttributes']['ClientId']['StringValue']
 			if clientid == str(clientID):
+				aws_sqs.change_vis(ourl, rhandle, 20)
 				print('Tagging response received\n')	
 				tag = m['Body']
-				rhandle = m['ReceiptHandle']
 				addTags(tag)
 				aws_sqs.delete_message(ourl,rhandle)
 				print('The tag is: '+tag+'\n\n')
@@ -96,15 +94,17 @@ def searchTag(tag):
 			try:
 				messages = aws_sqs.read_message(ourl)
 				m = messages['Messages'][0]
+				rhandle = m['ReceiptHandle']
+				aws_sqs.change_vis(ourl, rhandle, 40)
 			except:
 				m = None		
 		typem = m['MessageAttributes']['Type']['StringValue']
 		if typem =='Searching Response':
 			clientid = m['MessageAttributes']['ClientId']['StringValue']
 			if clientid == str(clientID):
+				aws_sqs.change_vis(ourl, rhandle, 100)
 				print('Searching response received\n')	
 				docs = m['Body']
-				rhandle = m['ReceiptHandle']
 				aws_sqs.delete_message(ourl,rhandle)
 				downloadFiles(docs)
 				send = True

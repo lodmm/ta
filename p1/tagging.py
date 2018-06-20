@@ -29,7 +29,7 @@ def addToken():
 	aws_sqs.put_message(turl,mes,att)
 
 index = 'Findex.json'
-bname = 'l-ta-bucket-p1'
+bname = 'lo-ta-bucket-p1'
 inbox = 'inbox'
 outbox = 'outbox'
 qtoken = 'token'
@@ -44,14 +44,16 @@ while True:
 		try:
 			messages = aws_sqs.read_message(iurl)
 			m = messages['Messages'][0]
+			rhandle = m['ReceiptHandle']
+			aws_sqs.change_vis(iurl, rhandle, 20)
 		except:
 			m = None		
 	typem = m['MessageAttributes']['Type']['StringValue']
 	if typem =='Tagging':
+		aws_sqs.change_vis(iurl, rhandle, 200)
 		print('Tagging message received')
 		clientid = m['MessageAttributes']['ClientId']['StringValue']
 		key = m['Body']
-		rhandle = m['ReceiptHandle']
 		#Get the document form the bucket
 		filename = key
 		aws_bucket.get_doc_bucket(bname,filename,key)

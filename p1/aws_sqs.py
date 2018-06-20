@@ -8,8 +8,7 @@ def create_queue(name):
 	response = sqs.create_queue(
     QueueName= name,
     Attributes={
-        'DelaySeconds': '60',
-        'MessageRetentionPeriod': '86400'
+        'ReceiveMessageWaitTimeSeconds': '20'
     })
 
 def delete_queue(urln):
@@ -25,7 +24,6 @@ def put_message(urln, message, attributes):
 		response = sqs.send_message(
 			QueueUrl = urln,
 			MessageBody = (message),
-			DelaySeconds = 15,
 			MessageAttributes = attributes	
 		)
 		return response	
@@ -38,7 +36,6 @@ def read_message(urln):
 		response = sqs.receive_message(QueueUrl=urln,
 			AttributeNames=['SentTimestamp'],
 			MessageAttributeNames=['All'],
-			WaitTimeSeconds=20,
 			MaxNumberOfMessages=1)	
 		return response	
 	except Exception as e:
@@ -57,12 +54,13 @@ def delete_message(urln, rhandle):
 def change_vis(urln, rhandle, vis):
 	sqs = boto3.client('sqs')
 	try:
-		response = sqs.delete_message(
+		response = sqs.change_message_visibility(
 		QueueUrl = urln,
 		ReceiptHandle=rhandle,
 		VisibilityTimeout = vis
 		)
 	except Exception as e:
+		print(e)
 		print("It is not possible to change the visibility of the message")
 
 def get_url(name):

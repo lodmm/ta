@@ -4,7 +4,7 @@ import json
 import operator
 
 index = 'Findex.json'
-bname = 'l-ta-bucket-p1'
+bname = 'lo-ta-bucket-p1'
 inbox = 'inbox'
 outbox = 'outbox'
 qtoken = 'token'
@@ -19,10 +19,7 @@ def findIndex(tag):
 	if tag in data:
 		d = data[tag]
 		s = sorted(d.items(), key=operator.itemgetter(1), reverse=True)
-		if len(s) > 10:
-			docs = s[:10]
-		else:
-			docs = s	
+		docs = s	
 	else:
 		docs = None
 	return docs	
@@ -38,10 +35,13 @@ while True:
 		try:
 			messages = aws_sqs.read_message(iurl)
 			m = messages['Messages'][0]
+			rhandle = m['ReceiptHandle']
+			aws_sqs.change_vis(iurl, rhandle, 20)
 		except:
 			m = None	
 	typem = m['MessageAttributes']['Type']['StringValue']
 	if typem =='Searching':
+		aws_sqs.change_vis(iurl, rhandle, 200)
 		print('Message of Searching received')	
 		clientid = m['MessageAttributes']['ClientId']['StringValue']
 		tag = m['Body']

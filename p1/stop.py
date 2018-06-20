@@ -2,7 +2,7 @@ import aws_bucket
 import aws_sqs
 
 
-bname = 'l-ta-bucket-p1'
+bname = 'lo-ta-bucket-p1'
 inbox = 'inbox'
 outbox = 'outbox'
 qtoken = 'token'
