@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+  Created-By: example
+  Class-Path: /usr/local/hadoop/share/hadoop/yarn/jackson-core-asl-1.9.13.jar /usr/local/hadoop/share/hadoop/yarn/jackson-jaxrs-1.9.13.jar /usr/local/hadoop/share/hadoop/yarn/jackson-mapper-1.9.13.jar /usr/local/hadoop/share/hadoop/yarn/jackson-xc-1.9.13.jar
+  Main-Class: HadooPart1
