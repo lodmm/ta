@@ -6,7 +6,7 @@ def addToken():
 	mes = 'Token message'
 	aws_sqs.put_message(turl,mes,att)
 #Create the bucket
-bname = 'lo-ta-bucket-p1'
+bname = 'l-ta-bucket-p1'
 bucket = aws_bucket.create_bucket(bname)
 print(bname," created")
 #Create the queues 

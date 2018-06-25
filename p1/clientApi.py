@@ -16,7 +16,7 @@ switcher = {
 
 clientID =  os.getpid()
 index = 'Findex.json'
-bname = 'lo-ta-bucket-p1'
+bname = 'l-ta-bucket-p1'
 inbox = 'inbox'
 outbox = 'outbox'
 qtoken = 'token'
