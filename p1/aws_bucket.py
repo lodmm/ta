@@ -1,7 +1,7 @@
 import boto3
 import re
 import botocore
-import textract
+
 
 def create_bucket(name):
   s3 = boto3.client('s3')
