@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-Created-By: example
-Class-Path: ../libs/jackson-core-2.9.6.jar ../libs/jackson-databind-2.9.6.jar
-Main-Class: HadooPart1

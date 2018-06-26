@@ -126,9 +126,9 @@ def searchTag(tag):
 				print('Searching response received\n')	
 				docs = m['Body']
 				aws_sqs.delete_message(ourl,rhandle)
-				docs_aux = printDocs(docs)
+				docs_aux,urls = printDocs(docs)
 				send = True
-				return docs_aux
+				return docs_aux,urls
 			else:
 				send = False
 

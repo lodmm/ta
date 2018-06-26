@@ -1,8 +1,6 @@
 import java.io.IOException;
-import java.util.ArrayList;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -13,7 +11,7 @@ import org.apache.hadoop.util.GenericOptionsParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+
 
 public class HadooPart1{
 	
@@ -53,7 +51,6 @@ public class HadooPart1{
 	public static class ImageReducer extends Reducer<Text,Text,Text,Text> {
 
 		private Text expQvalue = new Text();
-		private Text node = new Text();
 		
 		public void reduce(Text key, Iterable<Text> values, Context con) 
 		     throws IOException, InterruptedException {
@@ -61,7 +58,6 @@ public class HadooPart1{
 			int q = 0;
 			int items = 0;
 			ObjectMapper objectMapper = new ObjectMapper();
-			ObjectNode genericQuantity = objectMapper.createObjectNode();
 			JsonNode jsonNode = null;
 			JsonNode previous = null;
 			boolean sameData = true;
@@ -155,7 +151,6 @@ public class HadooPart1{
 	public static class GetMapper extends Mapper<Object, Text, Text, Text>{
 
 		private Text auxK = new Text();
-		private Text auxV = new Text();
 		
 
 		public void map(Object key, Text value, Context con)throws IOException, InterruptedException {
@@ -179,13 +174,7 @@ public class HadooPart1{
 		private String unitWi;
 		private String unitH;
 		private String unitL;
-		
-		private Text dValue = new Text();
-		private Text expQK = new Text();
-		private Text expQV = new Text();
-		private Text auxK = new Text();
-		private Text auxV = new Text();
-		
+
 		private int quantity = 0;
 		
 		int i = 0;
@@ -301,8 +290,6 @@ public class HadooPart1{
 			
 			con.write(resultado, null);
 			
-			
-			
 		}
 	}
 		
@@ -332,8 +319,6 @@ public class HadooPart1{
 		FileOutputFormat.setOutputPath(job, new Path("usr/"));
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
 		
-		
-		System.exit(job.waitForCompletion(true) ? 0 : 1);
 
 	}			
 }
