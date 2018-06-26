@@ -4,7 +4,7 @@ import json
 import operator
 
 index = 'Findex.json'
-bname = 'l-ta-bucket-p1'
+bname = 'lo-ta-bucket-p1'
 inbox = 'inbox'
 outbox = 'outbox'
 qtoken = 'token'

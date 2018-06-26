@@ -12,7 +12,7 @@ import random
 
 
 index = 'Findex.json'
-bname = 'l-ta-bucket-p1'
+bname = 'lo-ta-bucket-p1'
 inbox = 'inbox'
 outbox = 'outbox'
 qtoken = 'token'
@@ -169,7 +169,7 @@ class ClientWeb(object):
 			<h1>Client Application</h1>
 			<h2>Tagging a file</h2>
 			<form method="post" enctype="multipart/form-data" action="tagging"">
-				<input type="text" name="file" id="file"/><br><br>
+				<input type="file" name="myFile" id="file"/><br><br>
 				<input type="submit" value="Start">
 			</form>
 			<h2>Searching a tag</h2>
@@ -185,17 +185,19 @@ class ClientWeb(object):
 			</html>"""
 
 	@cherrypy.expose
-	def tagging(self, file):
+	def tagging(self, myFile):
 		"Main menu to select interest"
+		with open(myFile.filename, 'w') as file:
+			file.write(myFile.file.read())
 		reader = codecs.getreader("utf-8")
-		if file is not None: 
-			tag = tagFile(file)
-			print(file)
+		if myFile is not None: 
+			tag = tagFile(myFile.filename)
+			print(myFile.filename)
 			out = """<html><body>
 					<h2>Tag result</h2>
 					The file that is being tagging is: {file:}<br><br>
 					The getting tag is: {tag}
-					</body></html>""".format(file=file,tag=tag)
+					</body></html>""".format(file=myFile.filename,tag=tag)
 		return out					
 
 	@cherrypy.expose
@@ -224,7 +226,9 @@ class ClientWeb(object):
 		return out	
 
 
-cherrypy.config.update({'tools.sessions.on': True                           
+cherrypy.config.update({'tools.sessions.on': True,
+											'server.socket_host': '0.0.0.0',
+                      'server.socket_port': 80                         
                })
 
 if __name__ == '__main__':
