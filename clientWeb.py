@@ -187,12 +187,8 @@ class ClientWeb(object):
 	@cherrypy.expose
 	def tagging(self, myFile):
 		"Main menu to select interest"
-		while True:
-			data = myFile.file.read(8192)
-			if not data:
-				break
 		with open(myFile.filename, 'w') as file:
-			file.write(data)
+			file.write(myFile.file.read())
 		reader = codecs.getreader("utf-8")
 		if myFile is not None: 
 			tag = tagFile(myFile.filename)
